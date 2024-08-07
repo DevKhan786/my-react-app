@@ -1,64 +1,64 @@
 import { useState, useEffect } from "react";
-import TodoInput from "./components/TodoInput";
-import TodoList from "./components/TodoList";
+import TodoCard from "./components/TodoCard"; // Assuming TodoCard is in components
 
-function App() {
+function TodoApp() {
   const [todos, setTodos] = useState([]);
   const [todoValue, setTodoValue] = useState("");
+
+  useEffect(() => {
+    const localTodos = localStorage.getItem("todos");
+    if (localTodos) {
+      setTodos(JSON.parse(localTodos).todos);
+    }
+  }, []);
 
   function persistData(newList) {
     localStorage.setItem("todos", JSON.stringify({ todos: newList }));
   }
 
-  function handleAddTodos(newTodo) {
-    if (newTodo.trim() === "") return;
-    const newTodoList = [...todos, newTodo];
-    persistData(newTodoList);
+  function handleAddTodos() {
+    if (todoValue.trim() === "") return;
+    const newTodoList = [...todos, todoValue];
     setTodos(newTodoList);
+    persistData(newTodoList);
+    setTodoValue("");
   }
 
   function handleDeleteTodo(index) {
-    const newTodoList = todos.filter((todo, Index) => {
-      return Index !== index;
-    });
-    persistData(newTodoList);
+    const newTodoList = todos.filter((_, i) => i !== index);
     setTodos(newTodoList);
+    persistData(newTodoList);
   }
 
   function handleEditTodo(index) {
-    const valueToBeEdited = todos[index];
-    setTodoValue(valueToBeEdited);
+    setTodoValue(todos[index]);
     handleDeleteTodo(index);
   }
 
-  useEffect(() => {
-    if (!localStorage) {
-      return;
-    }
-
-    let localTodos = localStorage.getItem("todos");
-    if (!localTodos) {
-      return;
-    }
-
-    localTodos = JSON.parse(localTodos).todos;
-    setTodos(localTodos);
-  }, []);
-
   return (
-    <>
-      <TodoInput
-        todoValue={todoValue}
-        setTodoValue={setTodoValue}
-        handleAddTodos={handleAddTodos}
-      />
-      <TodoList
-        handleEditTodo={handleEditTodo}
-        handleDeleteTodo={handleDeleteTodo}
-        todos={todos}
-      />
-    </>
+    <div>
+      <header>
+        <input
+          value={todoValue}
+          onChange={(e) => setTodoValue(e.target.value)}
+          placeholder="Enter Task"
+        />
+        <button onClick={handleAddTodos}>Add</button>
+      </header>
+      <ul className="main">
+        {todos.map((todo, index) => (
+          <TodoCard
+            key={index}
+            index={index}
+            handleEditTodo={handleEditTodo}
+            handleDeleteTodo={handleDeleteTodo}
+          >
+            <p>{todo}</p>
+          </TodoCard>
+        ))}
+      </ul>
+    </div>
   );
 }
 
-export default App;
+export default TodoApp;
